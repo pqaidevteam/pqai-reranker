@@ -1,0 +1,11 @@
+annoy==1.17.0
+fastapi==0.78.0
+MatchZoo==2.2.0
+nltk==3.6.6
+numba==0.54.0
+numpy==1.19.5
+python-dotenv==0.20.0
+requests==2.26.0
+scikit_learn==1.1.1
+scipy==1.4.1
+uvicorn==0.17.6
