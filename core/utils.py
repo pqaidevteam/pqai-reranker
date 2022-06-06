@@ -1,8 +1,6 @@
-import json
 import numpy as np
 from pathlib import Path
 import re
-from annoy import AnnoyIndex
 from functools import lru_cache
 
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
