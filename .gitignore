@@ -14,5 +14,4 @@ venv.bak/
 /assets/*
 !assets/README.md
 
-docker-compose.yml
 .env
