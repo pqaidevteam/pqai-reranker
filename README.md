@@ -1,3 +1,5 @@
+_Note: This repository is under active development and not ready for production yet._
+
 # PQAI Reranker
 
 Service for ranking documents.
