@@ -24,21 +24,27 @@ documents = [
     "There is a lion in the forest",
 ]
 
+class DummyRanker(Ranker):
+
+    def __init__(self, score_type):
+        super().__init__(score_type)
+
+    def score(self, qry, doc):
+        return len(doc.split()) - len(qry.split())
+
 
 class TestReRankerClass(unittest.TestCase):
-    def setUp(self):
-        self.dummy_reranker_fn = lambda str1, str2: len(str2.split())
 
     def test_score(self):
-        reranker = Ranker(self.dummy_reranker_fn)
+        reranker = DummyRanker('distance')
         query = "This is a red apple, which is a fruit"
         document = "This is a green apple"
-        expected = len(document.split())
+        expected = -4
         actual = reranker.score(query, document)
         self.assertEqual(expected, actual)
 
     def test_rank(self):
-        reranker = Ranker(self.dummy_reranker_fn)
+        reranker = DummyRanker('distance')
         expected = [len(doc.split()) for doc in documents]
         expected = np.argsort(expected)[::-1]
         actual = reranker.rank(query, documents)

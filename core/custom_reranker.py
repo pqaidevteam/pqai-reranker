@@ -289,9 +289,9 @@ class CustomRanker(Ranker):
         self._interaction.context = False
         self._interaction.window = 10
         self._interact = self._interaction.interact
-        super().__init__(self.similarity, "similarity")
+        super().__init__("similarity")
 
-    def similarity(self, query, doc):
+    def score(self, query, doc):
         query_tokens = Text(query).to_tokens()
         doc_tokens = Text(doc).to_tokens()
         nq = len(query_tokens)
@@ -309,6 +309,6 @@ class CustomRanker(Ranker):
         query_term_matches *= query_term_weights
         score = query_term_matches.sum()
         if query != doc:
-            score /= self.similarity(query, query)
+            score /= self.score(query, query)
             score /= doc_length_penalty_factor
         return score
