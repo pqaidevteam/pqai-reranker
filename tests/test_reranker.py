@@ -3,10 +3,12 @@ import numpy as np
 
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
 
 test_dir = str(Path(__file__).parent.resolve())
 BASE_DIR = Path(__file__).parent.parent
 sys.path.append(str(BASE_DIR.resolve()))
+load_dotenv(f"{BASE_DIR}/.env")
 
 from core.reranker import Ranker
 from core.reranker import CustomRanker
@@ -24,6 +26,7 @@ documents = [
 
 
 class TestReRankerClass(unittest.TestCase):
+    
     def setUp(self):
         self.dummy_reranker_fn = lambda str1, str2: len(str2.split())
 
