@@ -11,7 +11,7 @@ sys.path.append(str(BASE_DIR.resolve()))
 load_dotenv(f"{BASE_DIR}/.env")
 
 from core.reranker import Ranker
-from core.reranker import CustomRanker
+from core.custom_reranker import CustomRanker
 from core.reranker import ConceptMatchRanker
 
 query = "This is a red apple, which is a fruit"
