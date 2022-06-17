@@ -10,12 +10,14 @@ import json
 import math
 
 from core.encoder_srv import encode
+
 # from core.representations import Text, Interaction
 # from core.representations import embeddings
 from scipy.spatial import distance
 
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
 models_dir = "{}/assets/".format(BASE_DIR)
+
 
 class GloveWordEmbeddings:
     def __init__(self):
@@ -67,11 +69,12 @@ class GloveWordEmbeddings:
     def get_sif(self, word):
         return self.sifs.get(word, 1.0)
 
+
 embeddings = GloveWordEmbeddings()
 sifs = embeddings.sifs
 
-class Ranker:
 
+class Ranker:
     def __init__(self, scoring_fn, metric_type="similarity"):
         self.scoring_fn = scoring_fn
         self.metric_type = metric_type
@@ -121,6 +124,7 @@ class MatchPyramidRanker(Ranker):
 
         super().__init__(calculate_similarity, "similarity")
 
+
 class Text(str):
     def __init__(self, text):
         self._text = text
@@ -143,6 +147,7 @@ class Text(str):
         else:
             return prefix + self._text[:17] + "..."
 
+
 class TokenSequence(list):
     def __init__(self, tokens):
         super().__init__(tokens)
@@ -155,6 +160,7 @@ class TokenSequence(list):
     @property
     def tokens(self):
         return self._tokens
+
 
 class VectorSequence:
     def __init__(self, labels, vectors):
@@ -231,6 +237,7 @@ class VectorSequence:
         )
         row_magnitudes += np.finfo(float).eps
         return self._sequence / row_magnitudes
+
 
 class Interaction:
     def __init__(

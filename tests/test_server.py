@@ -33,7 +33,7 @@ class TestAPI(unittest.TestCase):
             "This is a green apple",
             "There are many red coloured fruits, apple is one of them",
             "An apple a day, keeps the doctor away",
-            "There is a lion in the forest"
+            "There is a lion in the forest",
         ]
 
     def test__rerank_route(self):

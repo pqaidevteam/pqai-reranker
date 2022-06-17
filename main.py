@@ -37,7 +37,7 @@ async def rerank(req: RerankingRequest):
     reranker = rerankers.get(req.model)
     if not reranker:
         raise HTTPException(status_code=400, detail="Invalid model name")
-    
+
     return {"ranks": reranker.rank(req.query, req.docs).tolist()}
 
 

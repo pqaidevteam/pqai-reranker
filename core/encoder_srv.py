@@ -1,7 +1,8 @@
 import os
 import requests
 
-ENCODER_SRV_ENDPOINT = os.environ['ENCODER_SRV_ENDPOINT']
+ENCODER_SRV_ENDPOINT = os.environ["ENCODER_SRV_ENDPOINT"]
+
 
 def encode(data, encoder):
     payload = {"data": data, "encoder": encoder}

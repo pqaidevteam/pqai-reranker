@@ -26,7 +26,6 @@ documents = [
 
 
 class TestReRankerClass(unittest.TestCase):
-    
     def setUp(self):
         self.dummy_reranker_fn = lambda str1, str2: len(str2.split())
 
