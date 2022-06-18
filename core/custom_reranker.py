@@ -1,11 +1,13 @@
-"""Summary
+"""
+A custom reranker model (custom = not based on any published paper)
 
 Attributes:
-    BASE_DIR (TYPE): Description
-    embeddings (TYPE): Description
-    MODELS_DIR (TYPE): Description
-    sifs (TYPE): Description
+    BASE_DIR (str): Absolute path to application's base directory
+    MODELS_DIR (str): Absolution path to /assets/ directory
+    embeddings (GloveWordEmbeddings): Word vectors
+    sifs (dict): Smooth inverse frequencies of words
 """
+
 import math
 from pathlib import Path
 import json
@@ -18,19 +20,19 @@ from core.encoder_srv import encode
 from core.reranker import Ranker
 
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
-MODELS_DIR = "{}/assets/".format(BASE_DIR)
+ASSETS_DIR = "{}/assets/".format(BASE_DIR)
+
 
 class GloveWordEmbeddings:
-
     """Glove word embeddings"""
 
     def __init__(self):
         """Initialize"""
-        self._models_dir = MODELS_DIR
-        self._vocab_file = f"{self._models_dir}/glove-vocab.json"
-        self._dict_file = f"{self._models_dir}/glove-dictionary.json"
-        self._dfs_file = f"{self._models_dir}/dfs.json"
-        self._embs_file = f"{self._models_dir}/glove-We.npy"
+        self._assets_dir = ASSETS_DIR
+        self._vocab_file = f"{self._assets_dir}/glove-vocab.json"
+        self._dict_file = f"{self._assets_dir}/glove-dictionary.json"
+        self._dfs_file = f"{self._assets_dir}/dfs.json"
+        self._embs_file = f"{self._assets_dir}/glove-We.npy"
         self._vocab = None
         self._dictionary = None
         self._dfs = None
@@ -109,42 +111,6 @@ class GloveWordEmbeddings:
 
 embeddings = GloveWordEmbeddings()
 sifs = embeddings._sifs
-
-
-class TokenSequence(list):
-
-    """Summary
-    """
-
-    def __init__(self, tokens):
-        """Summary
-
-        Args:
-            tokens (TYPE): Description
-        """
-        super().__init__(tokens)
-        self._tokens = tokens
-
-    def to_vector_sequence(self, token_embeddings):
-        """Summary
-
-        Args:
-            token_embeddings (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
-        vectors = [token_embeddings[token] for token in self._tokens]
-        return VectorSequence(self._tokens, vectors)
-
-    @property
-    def tokens(self):
-        """Summary
-
-        Returns:
-            TYPE: Description
-        """
-        return self._tokens
 
 
 class VectorSequence:
@@ -525,13 +491,14 @@ class InteractionMatrix:
         axis = 1 if direction == "horizontal" else 0
         return np.max(self._matrix, axis=axis)
 
+
 class CustomRanker(Ranker):
 
-    """Summary
+    """Custom model for scoring similarity between a query & a document
     """
 
     def __init__(self):
-        """Summary
+        """Initialize
         """
         self._interaction = Interaction()
         self._interaction.metric = "cosine"
@@ -539,11 +506,10 @@ class CustomRanker(Ranker):
         self._interaction.reinforce = False
         self._interaction.context = False
         self._interaction.window = 10
-        self._interact = self._interaction.interact
         super().__init__("similarity")
 
-    def score(self, query, doc):
-        """Summary
+    def score(self, query, document):
+        """Get a numerical similarity score between the query and document
 
         Args:
             query (str): Query
@@ -552,23 +518,30 @@ class CustomRanker(Ranker):
         Returns:
             float: Similarity score between query and document
         """
-        query_tokens = TokenSequence(RegexpTokenizer(r"\w+").tokenize(query.lower()))
-        doc_tokens = TokenSequence(RegexpTokenizer(r"\w+").tokenize(doc.lower()))
-        nq = len(query_tokens)
-        nd = max(1, len(doc_tokens))
-        doc_length_surplus = max(1, nd / nq)
-        doc_length_penalty_factor = 1 + 0.5 * math.sqrt(doc_length_surplus)
-        Q = query_tokens.to_vector_sequence(embeddings)
-        D = doc_tokens.to_vector_sequence(embeddings)
-        query_term_matches = self._interact(Q, D).maxpool()
+        qry_tokens = RegexpTokenizer(r"\w+").tokenize(query.lower())
+        doc_tokens = RegexpTokenizer(r"\w+").tokenize(document.lower())
+                
+        Q = VectorSequence(qry_tokens, [embeddings[token] for token in qry_tokens])
+        D = VectorSequence(doc_tokens, [embeddings[token] for token in doc_tokens])
+        query_term_matches = self._interaction.interact(Q, D).maxpool()
+
         sifs = embeddings._sifs
         query_term_weights = [
-            (sifs[word] if word in sifs else 1.0) for word in query_tokens
+            (sifs[word] if word in sifs else 1.0) for word in qry_tokens
         ]
         query_term_weights *= 1 - Q.redundancy_vector
         query_term_matches *= query_term_weights
         score = query_term_matches.sum()
-        if query != doc:
+
+        if query != document:
             score /= self.score(query, query)
-            score /= doc_length_penalty_factor
+            score /= self._calc_penalty_factor(qry_tokens, doc_tokens)
         return score
+
+    @staticmethod
+    def _calc_penalty_factor(qry_tokens, doc_tokens):
+        nq = len(qry_tokens)
+        nd = max(1, len(doc_tokens))
+        doc_length_surplus = max(1, nd / nq)
+        doc_length_penalty_factor = 1 + 0.5 * math.sqrt(doc_length_surplus)
+        return doc_length_penalty_factor
