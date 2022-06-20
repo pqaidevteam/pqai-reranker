@@ -11,7 +11,8 @@ from pydantic import BaseModel
 from typing import List
 
 load_dotenv()
-from core.reranker import ConceptMatchRanker, CustomRanker
+from core.reranker import ConceptMatchRanker
+from core.custom_reranker import CustomRanker
 
 rerankers = {
     "concept-match-ranker": ConceptMatchRanker(),

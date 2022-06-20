@@ -1,0 +1,2 @@
+PORT=                   # port on which application is to run
+ENCODER_SRV_ENDPOINT=   # URL to the encoder service's /encode route

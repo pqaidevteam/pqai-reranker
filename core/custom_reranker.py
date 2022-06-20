@@ -115,15 +115,14 @@ sifs = embeddings._sifs
 
 class VectorSequence:
 
-    """Summary
-    """
+    """A wrapper around a list of vectors"""
 
     def __init__(self, labels, vectors):
-        """Summary
+        """Initalize
 
         Args:
-            labels (TYPE): Description
-            vectors (TYPE): Description
+            labels (List[str]): An identifier for each vector
+            vectors (List[List[float]]): A 2d matrix of floats (list of vectors)
         """
         self._labels = labels
         self._sequence = np.array(vectors)
@@ -139,18 +138,18 @@ class VectorSequence:
 
     @property
     def labels(self):
-        """Summary
+        """Return the list of labels
 
         Returns:
-            TYPE: Description
+            list: Labels
         """
         return self._labels
 
     def __repr__(self):
-        """Summary
+        """String representation
 
         Returns:
-            TYPE: Description
+            str: String representation
         """
         text = f"VectorSequence: {len(self._labels)} labels, {len(self._sequence)} vectors;"
         text += f' Labels: {", ".join(self._labels[:5])}'
@@ -158,34 +157,34 @@ class VectorSequence:
         return text
 
     def _weighted_by_tokens(self, weights):
-        """Summary
+        """Multiply each vector with a scalar value provided as a dictionary of labels
 
         Args:
-            weights (TYPE): Description
+            weights (dict): {label: weight} dictionary
 
         Returns:
-            TYPE: Description
+            List[List[float]]: List of weighted vectors
         """
         W = [weights[token] for token in self._tokens]
         return self.weighted_by_vectors(W)
 
     def _weighted_by_vectors(self, W):
-        """Summary
+        """Multiply each vector with a scalar value provided as a list of numbers
 
         Args:
-            W (TYPE): Description
+            W (List[float]): Scalars
 
         Returns:
-            TYPE: Description
+            List[List[float]]: List of weighted vectors
         """
         W = np.array(W).reshape(1, -1)
         return self._sequence * W.T
 
     def weigh(self, weights):
-        """Summary
+        """Multiply vectors with weights
 
         Args:
-            weights (TYPE): Description
+            weights (dict or list): Weights corresponding to vectors or labels
         """
         if isinstance(weights, dict):
             self._weighted_by_tokens(weights)
@@ -198,8 +197,7 @@ class VectorSequence:
         Returns:
             TYPE: Description
         """
-        interact = self._default_interaction.interact
-        interactions = interact(self, self)
+        interactions = self._default_interaction.interact(self, self)
         interactions = np.tril(interactions._matrix, -1)
         return np.max(interactions, axis=1)
 
@@ -460,33 +458,25 @@ class Interaction:
 
 class InteractionMatrix:
 
-    """Summary
+    """A matrix of interaction between two vector sequences
     """
 
     def __init__(self, I):
-        """Summary
+        """Initialize
 
         Args:
-            I (TYPE): Description
+            I (List[List[floats]]): Interaction matrix
         """
         self._matrix = I
 
-    def available_metrics(self):
-        """Summary
-
-        Returns:
-            TYPE: Description
-        """
-        return self._available_interactions
-
     def maxpool(self, direction="horizontal"):
-        """Summary
+        """Max pooling
 
         Args:
-            direction (str, optional): Description
+            direction (str, optional): "horizontal" or "vertical"
 
         Returns:
-            TYPE: Description
+            list: Max pooling output
         """
         axis = 1 if direction == "horizontal" else 0
         return np.max(self._matrix, axis=axis)
