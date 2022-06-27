@@ -9,7 +9,6 @@ services:
     ports: 
       - 8004:80
     volumes:
-      
       - type: bind
         source: ./assets
         target: /code/assets

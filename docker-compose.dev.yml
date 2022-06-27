@@ -9,6 +9,8 @@ services:
     ports: 
       - 8004:80
     volumes:
-      - ./:/code
+      - type: bind
+        source: ./assets
+        target: /code/assets
     environment:
       - PORT=${PORT}
