@@ -60,6 +60,16 @@ class TestAPI(unittest.TestCase):
         response = self.call_route("/rerank", data, "post")
         self.assertEqual(400, response.status_code)
 
+    def test__score_route(self):
+        """Check if a valid request return a valid response"""
+        for model in MODELS:
+            data = {"query": self.query, "doc": self.docs[1], "model": model}
+            response = self.call_route("/score", data, "post")
+            self.assertEqual(200, response.status_code)
+            score = response.json().get("score")
+            self.assertIsInstance(score, float)
+            self.assertGreater(score, 0.0)
+
     def call_route(self, route, data, method="get"):
         """Make a request to given route with given parameters"""
         route = route.lstrip("/")

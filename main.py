@@ -25,6 +25,11 @@ class RerankingRequest(BaseModel):
     model: str
     docs: List[str]
 
+class ScoringRequest(BaseModel):
+    query: str
+    model: str
+    doc: str
+
 
 app = FastAPI()
 
@@ -40,6 +45,19 @@ async def rerank(req: RerankingRequest):
         raise HTTPException(status_code=400, detail="Invalid model name")
 
     return {"ranks": reranker.rank(req.query, req.docs).tolist()}
+
+
+@app.post("/score")
+async def score(req: ScoringRequest):
+    """Sort documents as per their similarity with a query"""
+    if not req.doc:
+        raise HTTPException(status_code=400, detail="No document!")
+
+    reranker = rerankers.get(req.model)
+    if not reranker:
+        raise HTTPException(status_code=400, detail="Invalid model name")
+
+    return {"score": reranker.score(req.query, req.doc)}
 
 
 if __name__ == "__main__":
