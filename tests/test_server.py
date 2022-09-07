@@ -10,6 +10,7 @@ import os
 import unittest
 from pathlib import Path
 import requests
+import socket
 from dotenv import load_dotenv
 
 ENV_FILE = str((Path(__file__).parent.parent / ".env").resolve())
@@ -22,7 +23,14 @@ API_ENDPOINT = "{}://{}:{}".format(PROTOCOL, HOST, PORT)
 
 MODELS = ["concept-match-ranker", "custom-ranker"]
 
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_not_running = sock.connect_ex((HOST, int(PORT))) != 0
 
+if server_not_running:
+    print("Server is not running. API tests will be skipped.")
+
+
+@unittest.skipIf(server_not_running, "Works only when true")
 class TestAPI(unittest.TestCase):
     """Test API routes"""
 
