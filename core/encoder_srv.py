@@ -1,3 +1,5 @@
+"""Encoder service"""
+
 import os
 import requests
 
@@ -7,7 +9,7 @@ ENCODER_SRV_ENDPOINT = os.environ["ENCODER_SRV_ENDPOINT"]
 def encode(data, encoder):
     payload = {"data": data, "encoder": encoder}
     try:
-        response = requests.post(ENCODER_SRV_ENDPOINT, json=payload)
+        response = requests.post(f"{ENCODER_SRV_ENDPOINT}/encode", json=payload)
     except Exception as e:
         raise e
     if response.status_code != 200:
