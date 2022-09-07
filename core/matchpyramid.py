@@ -8,13 +8,13 @@ from matchzoo.preprocessors.chain_transform import chain_transform
 import numpy as np
 
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
-models_dir = "{}/assets".format(BASE_DIR)
+ASSETS_DIR = f"{BASE_DIR}/assets"
+
+MODEL_DIR = f"{ASSETS_DIR}/MatchPyramid_200_tokens"
+preprocessor = load_preprocessor(f"{MODEL_DIR}/preprocessor")
+model = load_model(f"{MODEL_DIR}/model")
 
 MAX_LEN = 200
-MODEL_DIR = f"{models_dir}MatchPyramid_200_tokens/"
-preprocessor = load_preprocessor(f"{MODEL_DIR}/preprocessor")
-model = load_model(f"{MODEL_DIR}model")
-
 """
 	Set embeddings for the <pad> and <oov> terms
 	to zero vectors so that they have zero interaction
