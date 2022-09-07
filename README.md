@@ -1,4 +1,4 @@
-[![Python](https://img.shields.io/badge/python-v3.8-blue)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-v3.7-blue)](https://www.python.org/)
 [![Linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/PyCQA/pylint)
 [![Docker build: automated](https://img.shields.io/badge/docker%20build-automated-066da5)](https://www.docker.com/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
