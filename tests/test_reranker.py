@@ -16,7 +16,7 @@ from core.custom_reranker import (
     GloveWordEmbeddings,
     VectorSequence,
     Interaction,
-    InteractionMatrix
+    InteractionMatrix,
 )
 from core.reranker import ConceptMatchRanker
 
@@ -30,8 +30,8 @@ documents = [
     "There is a lion in the forest",
 ]
 
-class DummyRanker(Ranker):
 
+class DummyRanker(Ranker):
     def __init__(self, score_type):
         super().__init__(score_type)
 
@@ -40,9 +40,8 @@ class DummyRanker(Ranker):
 
 
 class TestReRankerClass(unittest.TestCase):
-
     def test_score(self):
-        reranker = DummyRanker('distance')
+        reranker = DummyRanker("distance")
         query = "This is a red apple, which is a fruit"
         document = "This is a green apple"
         expected = -4
@@ -50,7 +49,7 @@ class TestReRankerClass(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_rank(self):
-        reranker = DummyRanker('distance')
+        reranker = DummyRanker("distance")
         expected = [len(doc.split()) for doc in documents]
         expected = np.argsort(expected)[::-1]
         actual = reranker.rank(query, documents)
@@ -88,7 +87,6 @@ class TestConceptMatchRanker(unittest.TestCase):
 
 
 class TestGloveWordEmbeddings(unittest.TestCase):
-
     def setUp(self):
         self.We = GloveWordEmbeddings()
 
@@ -98,7 +96,7 @@ class TestGloveWordEmbeddings(unittest.TestCase):
         self.assertGreater(n, 0)
 
     def test__can_return_vector_by_word_index(self):
-        we = self.We[0] # we = word embedding
+        we = self.We[0]  # we = word embedding
         self.assertIsInstance(we, np.ndarray)
         self.assertEqual(we.shape, (256,))
 
@@ -127,7 +125,6 @@ class TestGloveWordEmbeddings(unittest.TestCase):
 
 
 class TestVectorSequence(unittest.TestCase):
-
     def setUp(self):
         We = GloveWordEmbeddings()
         self.tokens = ["a", "fire", "fighting", "drone"]
@@ -157,7 +154,7 @@ class TestVectorSequence(unittest.TestCase):
         self.assertIsInstance(M0, np.ndarray)
         self.assertIsInstance(M1, np.ndarray)
         self.assertEqual(M0.shape, M1.shape)
-        self.assertNotEqual(np.sum(M1-M0), 0.0)
+        self.assertNotEqual(np.sum(M1 - M0), 0.0)
 
     def test__can_enforce_fixed_length_more_than_seq_length(self):
         self.seq.set_length(20)
@@ -177,7 +174,6 @@ class TestVectorSequence(unittest.TestCase):
 
 
 class TestInteraction(unittest.TestCase):
-
     def setUp(self):
         metrics = ["cosine", "dot", "euclidean"]
         context = [True, False]
@@ -185,15 +181,15 @@ class TestInteraction(unittest.TestCase):
         reinforce = [True, False]
         self.interactions = [
             Interaction(metric=m, context=c, amplify=a, reinforce=r)
-                for m in metrics
-                for c in context
-                for a in amplify
-                for r in reinforce
+            for m in metrics
+            for c in context
+            for a in amplify
+            for r in reinforce
         ]
 
     def test__can_create_interaction_matrix(self):
         We = GloveWordEmbeddings()
-        
+
         labels_a = ["a", "fire", "fighting", "drone"]
         vectors_a = [We[token] for token in labels_a]
         seq_a = VectorSequence(labels_a, vectors_a)
@@ -201,10 +197,9 @@ class TestInteraction(unittest.TestCase):
         labels_b = ["a", "power", "line", "aerial", "vehicle"]
         vectors_b = [We[token] for token in labels_b]
         seq_b = VectorSequence(labels_b, vectors_b)
-        
+
         for interaction in self.interactions:
             self.assertIsInstance(interaction.interact(seq_a, seq_b), InteractionMatrix)
-
 
 
 if __name__ == "__main__":

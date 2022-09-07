@@ -25,6 +25,7 @@ class RerankingRequest(BaseModel):
     model: str
     docs: List[str]
 
+
 class ScoringRequest(BaseModel):
     query: str
     model: str

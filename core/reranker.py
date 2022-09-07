@@ -8,6 +8,7 @@ import numpy as np
 from scipy.spatial import distance
 from core.encoder_srv import encode
 
+
 class Ranker:
 
     """Summary

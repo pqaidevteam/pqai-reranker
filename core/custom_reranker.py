@@ -257,12 +257,9 @@ class Interaction:
         window_size (TYPE): Description
     """
 
-    def __init__(self,
-                 metric="cosine",
-                 context=False,
-                 amplify=False,
-                 reinforce=False,
-                 window=5):
+    def __init__(
+        self, metric="cosine", context=False, amplify=False, reinforce=False, window=5
+    ):
         """Summary
 
         Args:
@@ -319,7 +316,7 @@ class Interaction:
             for j in range(len(B)):
                 a = A[i]
                 b = B[j]
-                diff = a-b
+                diff = a - b
                 s += diff * diff
         return np.sqrt(s)
 
@@ -481,7 +478,7 @@ class CustomRanker(Ranker):
         """
         qry_tokens = RegexpTokenizer(r"\w+").tokenize(query.lower())
         doc_tokens = RegexpTokenizer(r"\w+").tokenize(document.lower())
-                
+
         Q = VectorSequence(qry_tokens, [embeddings[token] for token in qry_tokens])
         D = VectorSequence(doc_tokens, [embeddings[token] for token in doc_tokens])
         query_term_matches = self._interaction.interact(Q, D).maxpool()

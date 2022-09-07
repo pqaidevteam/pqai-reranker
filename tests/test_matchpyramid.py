@@ -12,8 +12,8 @@ load_dotenv(f"{BASE_DIR}/.env")
 
 from core.matchpyramid import calculate_similarity
 
-class TestMatchPyramidRanker(TestCase):
 
+class TestMatchPyramidRanker(TestCase):
     def setUp(self):
         pass
 
@@ -29,6 +29,7 @@ class TestMatchPyramidRanker(TestCase):
         sim0 = calculate_similarity(text1, text1)
         sim1 = calculate_similarity(text1, text2)
         self.assertGreater(sim0, sim1)
+
 
 if __name__ == "__main__":
     unittest.main()
