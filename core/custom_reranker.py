@@ -89,13 +89,12 @@ class GloveWordEmbeddings:
         Returns:
             List[float]: Word vector
         """
-        if type(item) is int:
+        assert isinstance(item, (int, str))
+        if isinstance(item, int):
             return self._embs[item]
-        elif type(item) is str:
+        if isinstance(item, str):
             item = item if item in self._dictionary else "<unk>"
             return self._embs[self._dictionary[item]]
-        else:
-            return np.zeros(self._dims)
 
     def get_sif(self, word):
         """Return SIF for a given word
@@ -156,39 +155,23 @@ class VectorSequence:
         text += ", ..." if self._labels[5:] else ""
         return text
 
-    def _weighted_by_tokens(self, weights):
-        """Multiply each vector with a scalar value provided as a dictionary of labels
-
-        Args:
-            weights (dict): {label: weight} dictionary
-
-        Returns:
-            List[List[float]]: List of weighted vectors
-        """
-        W = [weights[token] for token in self._tokens]
-        return self.weighted_by_vectors(W)
-
-    def _weighted_by_vectors(self, W):
-        """Multiply each vector with a scalar value provided as a list of numbers
-
-        Args:
-            W (List[float]): Scalars
-
-        Returns:
-            List[List[float]]: List of weighted vectors
-        """
-        W = np.array(W).reshape(1, -1)
-        return self._sequence * W.T
-
     def weigh(self, weights):
         """Multiply vectors with weights
 
         Args:
             weights (dict or list): Weights corresponding to vectors or labels
         """
+
         if isinstance(weights, dict):
-            self._weighted_by_tokens(weights)
-        self._weighted_by_vector(weights)
+            W = np.array([weights[label] for label in self._labels])
+        if isinstance(weights, list):
+            W = np.array(weights)
+        if isinstance(weights, np.ndarray):
+            W = weights
+
+        assert len(W) == len(self._sequence)
+        W = W.reshape(1, -1)
+        self._sequence *= W.T
 
     @property
     def redundancy_vector(self):
@@ -294,12 +277,6 @@ class Interaction:
         self.amplify = amplify
         self.reinforce = reinforce
         self.window_size = window
-        self._amplify_matrix = np.vectorize(self._amplify)
-        self._a = 3.2
-        self._b = 7.5
-        self._c = 0.46
-        self._f = 1.0
-        self._h = 0.0
 
     def _dot_interaction(self, A, B):
         """Summary
@@ -337,9 +314,14 @@ class Interaction:
         Returns:
             TYPE: Description
         """
-        diff = A - B
-        sq_diff = diff * diff
-        return np.sqrt(sq_diff)
+        s = 0.0
+        for i in range(len(A)):
+            for j in range(len(B)):
+                a = A[i]
+                b = B[j]
+                diff = a-b
+                s += diff * diff
+        return np.sqrt(s)
 
     def _context_sequence(self, vector_seq):
         """Summary
@@ -382,6 +364,7 @@ class Interaction:
         Ac = self._context_sequence(vector_seq_A)
         Bc = self._context_sequence(vector_seq_B)
         Ic = self.interaction_fn(Ac, Bc)
+        print("Amplification", self.amplify)
         Ic = self._amplifier(Ic) if self.amplify else Ic
 
         if not self.reinforce:
@@ -430,17 +413,6 @@ class Interaction:
             TYPE: Description
         """
         return 0.25 * (A + B + 2 * (A * B))
-
-    def _amplify(self, x):
-        """Summary
-
-        Args:
-            x (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
-        return self._h + (self._f / (1 + (self._a * math.exp(self._b * (x - self._c)))))
 
     @staticmethod
     @numba.vectorize([numba.float64(numba.float64)])
