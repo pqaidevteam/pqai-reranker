@@ -364,7 +364,6 @@ class Interaction:
         Ac = self._context_sequence(vector_seq_A)
         Bc = self._context_sequence(vector_seq_B)
         Ic = self.interaction_fn(Ac, Bc)
-        print("Amplification", self.amplify)
         Ic = self._amplifier(Ic) if self.amplify else Ic
 
         if not self.reinforce:
