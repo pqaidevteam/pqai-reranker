@@ -45,11 +45,6 @@ def get_d_pool_array(n_docs, MAX_LEN):
     return d_pool_array
 
 
-class CustomTokenize:
-    def transform(self, input_: str) -> list:
-        return re.findall(r"\w+", input_)
-
-
 def get_transformer(preprocessor: BasicPreprocessor, mode: str) -> types.FunctionType:
     transformer_units = preprocessor._units[:]
     if mode == "right":
@@ -76,15 +71,14 @@ def get_similarity_scores(texts_left, texts_right):
 
 
 def calculate_similarity(left_val, right_val):
+    assert isinstance(left_val, (str, list))
+    assert isinstance(right_val, (str, list))
+
     if isinstance(left_val, str) and isinstance(right_val, str):
         return get_similarity_scores([left_val], [right_val])[0]
-    elif isinstance(left_val, str) and isinstance(right_val, list):
+    if isinstance(left_val, str) and isinstance(right_val, list):
         n = len(right_val)
-        return get_similarity_scores([left_val] * n, right_val)
-    elif isinstance(left_val, list) and isinstance(right_val, list):
-        if len(left_val) == len(right_val):
-            return get_similarity_scores(left_val, right_val)
-        else:
-            return None
-    else:
-        return None
+        return [calculate_similarity(a, b) for a, b in zip(n*[left_val], right_val)]
+    if isinstance(left_val, list) and isinstance(right_val, list):
+        assert len(left_val) == len(right_val)
+        return [calculate_similarity(a, b) for a, b in zip(left_val, right_val)]
