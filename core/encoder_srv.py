@@ -7,6 +7,7 @@ ENCODER_SRV_ENDPOINT = os.environ["ENCODER_SRV_ENDPOINT"]
 
 
 def encode(data, encoder):
+    """Encode given data using given encoder"""
     payload = {"data": data, "encoder": encoder}
     try:
         response = requests.post(f"{ENCODER_SRV_ENDPOINT}/encode", json=payload)

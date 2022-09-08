@@ -3,20 +3,18 @@ A custom reranker model (custom = not based on any published paper)
 
 Attributes:
     BASE_DIR (str): Absolute path to application's base directory
-    MODELS_DIR (str): Absolution path to /assets/ directory
+    MODELS_DIR (str): Absolute path to /assets/ directory
     embeddings (GloveWordEmbeddings): Word vectors
     sifs (dict): Smooth inverse frequencies of words
 """
 
 import math
-from pathlib import Path
 import json
+from pathlib import Path
 import numba
 import numpy as np
 from nltk.tokenize import RegexpTokenizer
 
-from scipy.spatial import distance
-from core.encoder_srv import encode
 from core.reranker import Ranker
 
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
@@ -36,7 +34,7 @@ class GloveWordEmbeddings:
         self._vocab = None
         self._dictionary = None
         self._dfs = None
-        self._sifs = None
+        self.sifs = None
         self._embs = None
         self._dims = None
         self._load()
@@ -51,7 +49,7 @@ class GloveWordEmbeddings:
         with open(self._dfs_file) as file:
             self._dfs = json.load(file)
         self._embs = np.load(self._embs_file)
-        self._sifs = {word: self.df2sif(word, self._dfs) for word in self._dfs}
+        self.sifs = {word: self.df2sif(word, self._dfs) for word in self._dfs}
         self._dims = self._embs.shape[1]
 
     @staticmethod
@@ -93,8 +91,10 @@ class GloveWordEmbeddings:
         if isinstance(item, int):
             return self._embs[item]
         if isinstance(item, str):
-            item = item if item in self._dictionary else "<unk>"
+            if not item in self._dictionary:
+                item = "<unk>"
             return self._embs[self._dictionary[item]]
+        raise TypeError("Invalid item type")
 
     def get_sif(self, word):
         """Return SIF for a given word
@@ -105,11 +105,11 @@ class GloveWordEmbeddings:
         Returns:
             float: SIF value
         """
-        return self._sifs.get(word, 1.0)
+        return self.sifs.get(word, 1.0)
 
 
 embeddings = GloveWordEmbeddings()
-sifs = embeddings._sifs
+sifs = embeddings.sifs
 
 
 class VectorSequence:
@@ -175,69 +175,44 @@ class VectorSequence:
 
     @property
     def redundancy_vector(self):
-        """Summary
-
-        Returns:
-            TYPE: Description
-        """
+        """Baseline for interaction with self"""
         interactions = self._default_interaction.interact(self, self)
-        interactions = np.tril(interactions._matrix, -1)
+        interactions = np.tril(interactions.matrix, -1)
         return np.max(interactions, axis=1)
 
     @property
     def matrix(self):
-        """Summary
+        """Vector matrix
 
         Returns:
-            TYPE: Description
+            np.ndarray: The matrix
         """
         if self._fixed_length is None:
             return self._sequence
         if self._n > self._fixed_length:
             return self._truncated
-        else:
-            return self._padded
+        return self._padded
 
     @property
     def _truncated(self):
-        """Summary
-
-        Returns:
-            TYPE: Description
-        """
+        """Make fixed length by trunction"""
         return self._sequence[: self._fixed_length]
 
     @property
     def _padded(self):
-        """Summary
-
-        Returns:
-            TYPE: Description
-        """
+        """Make fixed length by padding"""
         r = self._fixed_length - self._n
         shape = (r, self._dims)
         padding = np.zeros(shape)
         return np.concatenate((self._sequence, padding))
 
     def set_length(self, n):
-        """Summary
-
-        Args:
-            n (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Set a fixed length"""
         self._fixed_length = n
-        return self
 
     @property
     def normalized_matrix(self):
-        """Summary
-
-        Returns:
-            TYPE: Description
-        """
+        """Return a matrix with noramlized (unit) vectors"""
         row_magnitudes = np.sqrt(
             np.sum(self._sequence * self._sequence, axis=1, keepdims=True)
         )
@@ -247,27 +222,17 @@ class VectorSequence:
 
 class Interaction:
 
-    """Summary
+    """Creates an interaction matrix between two vector sequences"""
 
-    Attributes:
-        amplify (TYPE): Description
-        context (TYPE): Description
-        metric (TYPE): Description
-        reinforce (TYPE): Description
-        window_size (TYPE): Description
-    """
-
-    def __init__(
-        self, metric="cosine", context=False, amplify=False, reinforce=False, window=5
-    ):
-        """Summary
+    def __init__(self, metric="cosine", context=False, amplify=False, reinforce=False, window=5):
+        """Initialize
 
         Args:
-            metric (str, optional): Description
-            context (bool, optional): Description
-            amplify (bool, optional): Description
-            reinforce (bool, optional): Description
-            window (int, optional): Description
+            metric (str, optional): `cosine` or `dot` or `euclidean`
+            context (bool, optional): Whether to apply context operation
+            amplify (bool, optional): Whether to apply amplification
+            reinforce (bool, optional): Whether to apply reinforcement
+            window (int, optional): Window size for interaction
         """
         self.metric = metric
         self.context = context
@@ -276,59 +241,25 @@ class Interaction:
         self.window_size = window
 
     def _dot_interaction(self, A, B):
-        """Summary
-
-        Args:
-            A (TYPE): Description
-            B (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Compute dot interaction"""
         return np.matmul(A, B.T)
 
     def _cosine_interaction(self, A, B):
-        """Summary
-
-        Args:
-            A (TYPE): Description
-            B (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Compute cosine interaction"""
         An = self._normalize_rows(A)
         Bn = self._normalize_rows(B)
         return self._dot_interaction(An, Bn)
 
     def _euclidean_interaction(self, A, B):
-        """Summary
-
-        Args:
-            A (TYPE): Description
-            B (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Compute euclidean interaction"""
         s = 0.0
-        for i in range(len(A)):
-            for j in range(len(B)):
-                a = A[i]
-                b = B[j]
-                diff = a - b
-                s += diff * diff
+        diffs = [a-b for a in A for b in B]
+        for diff in diffs:
+            s += diff * diff
         return np.sqrt(s)
 
     def _context_sequence(self, vector_seq):
-        """Summary
-
-        Args:
-            vector_seq (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Return context sequence"""
         M = vector_seq.matrix
         C = np.zeros(M.shape)
         C *= np.array(
@@ -341,15 +272,7 @@ class Interaction:
         return C
 
     def interact(self, vector_seq_A, vector_seq_B):
-        """Summary
-
-        Args:
-            vector_seq_A (TYPE): Description
-            vector_seq_B (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Create interaction matrix"""
         A = vector_seq_A.matrix
         B = vector_seq_B.matrix
         I = self.interaction_fn(A, B)
@@ -371,56 +294,31 @@ class Interaction:
 
     @property
     def interaction_fn(self):
-        """Summary
-
-        Returns:
-            TYPE: Description
-        """
+        """Function used for creating interaction between two vectors"""
         if self.metric == "cosine":
             return self._cosine_interaction
-        elif self.metric == "dot":
+        if self.metric == "dot":
             return self._dot_interaction
-        elif self.metric == "euclidean":
+        if self.metric == "euclidean":
             return self._euclidean_interaction
+        raise Exception("Invalid metric value")
 
     @staticmethod
     def _normalize_rows(M):
-        """Summary
-
-        Args:
-            M (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Normalize vectors to convert them to unit vectors"""
         row_magnitudes = np.sqrt(np.sum(M * M, axis=1, keepdims=True))
         row_magnitudes += np.finfo(float).eps
         return M / row_magnitudes
 
     @staticmethod
     def _reinforce(A, B):
-        """Summary
-
-        Args:
-            A (TYPE): Description
-            B (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Apply reinforcement"""
         return 0.25 * (A + B + 2 * (A * B))
 
     @staticmethod
     @numba.vectorize([numba.float64(numba.float64)])
     def _amplifier(x):
-        """Summary
-
-        Args:
-            x (TYPE): Description
-
-        Returns:
-            TYPE: Description
-        """
+        """Apply amplification"""
         return 1 / (1 + (3.2 * math.exp(-7.5 * (x - 0.46))))
 
 
@@ -448,6 +346,11 @@ class InteractionMatrix:
         """
         axis = 1 if direction == "horizontal" else 0
         return np.max(self._matrix, axis=axis)
+
+    @property
+    def matrix(self):
+        """Return interaction matrix as numpy array"""
+        return np.copy(self._matrix)
 
 
 class CustomRanker(Ranker):
@@ -483,7 +386,6 @@ class CustomRanker(Ranker):
         D = VectorSequence(doc_tokens, [embeddings[token] for token in doc_tokens])
         query_term_matches = self._interaction.interact(Q, D).maxpool()
 
-        sifs = embeddings._sifs
         query_term_weights = [
             (sifs[word] if word in sifs else 1.0) for word in qry_tokens
         ]

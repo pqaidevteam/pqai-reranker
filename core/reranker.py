@@ -4,25 +4,25 @@ their similarity to a query.
 """
 
 import math
-import numpy as np
 from scipy.spatial import distance
+import numpy as np
 from core.encoder_srv import encode
 
 
 class Ranker:
 
-    """Summary
+    """Ranks documents based on their extent of similarity to a query
 
     Attributes:
-        metric_type (TYPE): Description
+        metric_type (str): If equal to `similarity` then it signifies that the
+            score assigned to a query-document pair increases as their
+            similarity increases. If equals `distance` then it signifies that
+            the numerical score assigned to a query-document pair decreases
+            (distance) as their similarity increases 
     """
 
     def __init__(self, metric_type="similarity"):
-        """Summary
-
-        Args:
-            metric_type (str, optional): Description
-        """
+        """Initialize"""
         self.metric_type = metric_type
 
     def score(self, query, document):
@@ -59,8 +59,7 @@ class ConceptMatchRanker(Ranker):
     """
 
     def __init__(self):
-        """Initialize
-        """
+        """Initialize"""
         super().__init__("distance")
 
     def score(self, query, document):
