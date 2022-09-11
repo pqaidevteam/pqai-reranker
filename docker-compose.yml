@@ -1,10 +1,10 @@
 version: '3.2'
 
 services:
-  pqai_encoder_api:
+  pqai_reranker_api:
     container_name: pqai_reranker
     build: .
-    command: bash -c "pip install --no-cache-dir --upgrade -r /app/requirements.txt && uvicorn main:app --host 0.0.0.0 --port 80"
+    command: bash -c "uvicorn main:app --host 0.0.0.0 --port 80"
     restart: always
     ports: 
       - ${PORT}:80
