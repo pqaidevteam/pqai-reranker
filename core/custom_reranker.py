@@ -20,6 +20,7 @@ from core.reranker import Ranker
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
 ASSETS_DIR = "{}/assets/".format(BASE_DIR)
 
+# pylint: disable=too-many-instance-attributes,too-many-arguments
 
 class GloveWordEmbeddings:
     """Glove word embeddings"""

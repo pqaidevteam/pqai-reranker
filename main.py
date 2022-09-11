@@ -4,13 +4,15 @@ Attributes:
 """
 
 import os
+from typing import List
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List
 
 load_dotenv()
+
+# pylint: disable=wrong-import-position
 from core.reranker import ConceptMatchRanker
 from core.custom_reranker import CustomRanker
 
@@ -19,6 +21,7 @@ rerankers = {
     "custom-ranker": CustomRanker(),
 }
 
+# pylint: disable=missing-class-docstring,too-few-public-methods
 
 class RerankingRequest(BaseModel):
     query: str

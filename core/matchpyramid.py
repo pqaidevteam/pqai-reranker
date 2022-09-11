@@ -51,6 +51,7 @@ def get_d_pool_array(n_docs, max_len):
 
     return d_pool_array
 
+# pylint: disable=protected-access
 
 def get_transformer(preprocessor: BasicPreprocessor, mode: str) -> types.FunctionType:
     """Get transformation function"""

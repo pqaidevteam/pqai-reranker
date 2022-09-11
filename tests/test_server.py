@@ -8,13 +8,18 @@ Attributes:
 """
 import os
 import unittest
+import socket
 from pathlib import Path
 import requests
-import socket
 from dotenv import load_dotenv
 
 ENV_FILE = str((Path(__file__).parent.parent / ".env").resolve())
 load_dotenv(ENV_FILE)
+
+# pylint: disable=wrong-import-position
+
+from test_utils import query as QUERY
+from test_utils import documents as DOCUMENTS
 
 PROTOCOL = "http"
 HOST = "localhost"
@@ -30,48 +35,35 @@ if server_not_running:
     print("Server is not running. API tests will be skipped.")
 
 
+# pylint: disable=missing-function-docstring, missing-class-docstring
+
 @unittest.skipIf(server_not_running, "Works only when true")
 class TestAPI(unittest.TestCase):
-    """Test API routes"""
-
-    def setUp(self):
-        self.query = "This is a red apple, which is a fruit"
-        self.docs = [
-            "This is a red car",
-            "This is a green apple",
-            "There are many red coloured fruits, apple is one of them",
-            "An apple a day, keeps the doctor away",
-            "There is a lion in the forest",
-        ]
 
     def test__rerank_route(self):
-        """Check if a valid request returns a valid response"""
         for model in MODELS:
-            data = {"query": self.query, "docs": self.docs, "model": model}
+            data = {"query": QUERY, "docs": DOCUMENTS, "model": model}
             response = self.call_route("/rerank", data, "post")
             self.assertEqual(200, response.status_code)
             ranks = response.json().get("ranks")
             self.assertIsInstance(ranks, list)
-            self.assertEqual(len(self.docs), len(ranks))
+            self.assertEqual(len(DOCUMENTS), len(ranks))
 
     def test__returns_error_for_invalid_model_name(self):
-        """Check if getting appropriate response code for request parameters"""
         model = "a-model-that-doesnt-exist"
-        data = {"query": self.query, "docs": self.docs, "model": model}
+        data = {"query": QUERY, "docs": DOCUMENTS, "model": model}
         response = self.call_route("/rerank", data, "post")
         self.assertEqual(400, response.status_code)
 
     def test__returns_error_for_empty_doc_list(self):
-        """Check if getting appropriate response code for request parameters"""
         model = "concept-match-ranker"
-        data = {"query": self.query, "docs": [], "model": model}
+        data = {"query": QUERY, "docs": [], "model": model}
         response = self.call_route("/rerank", data, "post")
         self.assertEqual(400, response.status_code)
 
     def test__score_route(self):
-        """Check if a valid request return a valid response"""
         for model in MODELS:
-            data = {"query": self.query, "doc": self.docs[1], "model": model}
+            data = {"query": QUERY, "doc": DOCUMENTS[1], "model": model}
             response = self.call_route("/score", data, "post")
             self.assertEqual(200, response.status_code)
             score = response.json().get("score")
@@ -79,7 +71,6 @@ class TestAPI(unittest.TestCase):
             self.assertGreater(score, 0.0)
 
     def call_route(self, route, data, method="get"):
-        """Make a request to given route with given parameters"""
         route = route.lstrip("/")
         url = f"{PROTOCOL}://{HOST}:{PORT}/{route}"
         response = getattr(requests, method)(url, json=data)

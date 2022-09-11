@@ -18,7 +18,7 @@ class Ranker:
             score assigned to a query-document pair increases as their
             similarity increases. If equals `distance` then it signifies that
             the numerical score assigned to a query-document pair decreases
-            (distance) as their similarity increases 
+            (distance) as their similarity increases
     """
 
     def __init__(self, metric_type="similarity"):

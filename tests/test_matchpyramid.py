@@ -1,26 +1,31 @@
-import unittest
-from unittest import TestCase
-import sys
+"""
+Tests for MatchPyramid model
+"""
+
+# pylint: disable=unused-import
 import re
-from pathlib import Path
+
+import sys
+import unittest
 import numpy as np
-from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).parent.parent
-sys.path.append(str(BASE_DIR.resolve()))
-load_dotenv(f"{BASE_DIR}/.env")
+from test_utils import BASE_DIR, QUERY, DOCUMENTS, init_env
 
+init_env()
+sys.path.append(BASE_DIR)
+
+# pylint: disable=wrong-import-position
 from core.matchpyramid import calculate_similarity
 
+# pylint: disable=missing-function-docstring, missing-class-docstring
 
-class TestMatchPyramidRanker(TestCase):
+class TestMatchPyramidRanker(unittest.TestCase):
 
     def setUp(self):
         self.text1 = "This invention relates with coffee makers."
         self.text2 = "A coffee making machine has been disclosed."
 
     def test__can_match_query_with_document(self):
-        
         sim = calculate_similarity(self.text1, self.text2)
         self.assertIsInstance(sim, np.float32)
 
