@@ -28,15 +28,17 @@ judgement but not scalable for millions of documents.
 
 1. Clone this repository
 1. Download required [assets](https://s3.amazonaws.com/pqai.s3/public/assets-pqai-reranker.zip) and extract them to `/assets` directory
-1. Create a `.env` file using `/env` template and provide environment variable values
+1. Create a `.env` file using `/env` template and set environment variable values
 1. Create a virtual environment and install dependencies: `pip install -r requirements.txt`
 1. Make sure the [encoder service](https://github.com/pqaidevteam/pqai-encoder) is running and properly configured in `.env` file
 1. Run the service: `python3 main.py`
 
 ### As docker container
 
-1. Make sure you have `docker-compose`
-1. Run `docker-compose up -d`
+1. Clone this repository
+1. Create a `.env` file using `/env` template and set environment variable values
+1. Give execution permission to the deployment script: `chmod +x deploy.sh`
+1. Run deployment script: `bash deploy.sh`
 
 ## License
 
