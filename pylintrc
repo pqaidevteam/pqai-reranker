@@ -1,0 +1,11 @@
+[MESSAGES CONTROL]
+disable=missing-function-docstring,
+        missing-class-docstring,
+        trailing-whitespace,
+        too-few-public-methods,
+        missing-module-docstring,
+        line-too-long,
+        invalid-name
+
+[MASTER]
+init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"

@@ -18,7 +18,7 @@ from nltk.tokenize import RegexpTokenizer
 from core.reranker import Ranker
 
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
-ASSETS_DIR = "{}/assets/".format(BASE_DIR)
+ASSETS_DIR = f"{BASE_DIR}/assets/"
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments
 
@@ -43,11 +43,11 @@ class GloveWordEmbeddings:
     def _load(self):
         """Load the embeddings data from the disk
         """
-        with open(self._vocab_file) as file:
+        with open(self._vocab_file, "r", encoding="utf-8") as file:
             self._vocab = json.load(file)
-        with open(self._dict_file) as file:
+        with open(self._dict_file, "r", encoding="utf-8") as file:
             self._dictionary = json.load(file)
-        with open(self._dfs_file) as file:
+        with open(self._dfs_file, "r", encoding="utf-8") as file:
             self._dfs = json.load(file)
         self._embs = np.load(self._embs_file)
         self.sifs = {word: self.df2sif(word, self._dfs) for word in self._dfs}
@@ -241,24 +241,6 @@ class Interaction:
         self.reinforce = reinforce
         self.window_size = window
 
-    def _dot_interaction(self, A, B):
-        """Compute dot interaction"""
-        return np.matmul(A, B.T)
-
-    def _cosine_interaction(self, A, B):
-        """Compute cosine interaction"""
-        An = self._normalize_rows(A)
-        Bn = self._normalize_rows(B)
-        return self._dot_interaction(An, Bn)
-
-    def _euclidean_interaction(self, A, B):
-        """Compute euclidean interaction"""
-        s = 0.0
-        diffs = [a-b for a in A for b in B]
-        for diff in diffs:
-            s += diff * diff
-        return np.sqrt(s)
-
     def _context_sequence(self, vector_seq):
         """Return context sequence"""
         M = vector_seq.matrix
@@ -321,6 +303,26 @@ class Interaction:
     def _amplifier(x):
         """Apply amplification"""
         return 1 / (1 + (3.2 * math.exp(-7.5 * (x - 0.46))))
+    
+    @staticmethod
+    def _dot_interaction(A, B):
+        """Compute dot interaction"""
+        return np.matmul(A, B.T)
+
+    def _cosine_interaction(self, A, B):
+        """Compute cosine interaction"""
+        An = self._normalize_rows(A)
+        Bn = self._normalize_rows(B)
+        return self._dot_interaction(An, Bn)
+
+    @staticmethod
+    def _euclidean_interaction(A, B):
+        """Compute euclidean interaction"""
+        s = 0.0
+        diffs = [a-b for a in A for b in B]
+        for diff in diffs:
+            s += diff * diff
+        return np.sqrt(s)
 
 
 class InteractionMatrix:

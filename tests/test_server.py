@@ -18,13 +18,13 @@ load_dotenv(ENV_FILE)
 
 # pylint: disable=wrong-import-position
 
-from test_utils import query as QUERY
-from test_utils import documents as DOCUMENTS
+from test_utils import QUERY
+from test_utils import DOCUMENTS
 
 PROTOCOL = "http"
 HOST = "localhost"
 PORT = os.environ["PORT"]
-API_ENDPOINT = "{}://{}:{}".format(PROTOCOL, HOST, PORT)
+API_ENDPOINT = "{PROTOCOL}://{HOST}:{PORT}"
 
 MODELS = ["concept-match-ranker", "custom-ranker"]
 
@@ -70,7 +70,8 @@ class TestAPI(unittest.TestCase):
             self.assertIsInstance(score, float)
             self.assertGreater(score, 0.0)
 
-    def call_route(self, route, data, method="get"):
+    @staticmethod
+    def call_route(route, data, method="get"):
         route = route.lstrip("/")
         url = f"{PROTOCOL}://{HOST}:{PORT}/{route}"
         response = getattr(requests, method)(url, json=data)
