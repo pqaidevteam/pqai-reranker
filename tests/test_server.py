@@ -1,49 +1,32 @@
 """Test for service HTTP API
-
-Attributes:
-    ENV_FILE (str): Absolute path to .env file (used for reading port no.)
-    HOST (str): IP address of the host where service is running
-    PORT (str): Port no. on which the server is listening
-    PROTOCOL (str): `http` or `https`
 """
-import os
+import sys
 import unittest
-import socket
 from pathlib import Path
-import requests
 from dotenv import load_dotenv
+from fastapi.testclient import TestClient
 
-ENV_FILE = str((Path(__file__).parent.parent / ".env").resolve())
-load_dotenv(ENV_FILE)
+BASE_DIR = Path(__file__).parent.parent.resolve()
+ENV_PATH = BASE_DIR / ".env"
 
-# pylint: disable=wrong-import-position
+load_dotenv(ENV_PATH.as_posix())
+sys.path.append(BASE_DIR.as_posix())
 
-from test_utils import QUERY
-from test_utils import DOCUMENTS
-
-PROTOCOL = "http"
-HOST = "localhost"
-PORT = os.environ["PORT"]
-API_ENDPOINT = "{PROTOCOL}://{HOST}:{PORT}"
+from main import app
+from test_utils import QUERY, DOCUMENTS
 
 MODELS = ["concept-match-ranker", "custom-ranker"]
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_not_running = sock.connect_ex((HOST, int(PORT))) != 0
 
-if server_not_running:
-    print("Server is not running. API tests will be skipped.")
-
-
-# pylint: disable=missing-function-docstring, missing-class-docstring
-
-@unittest.skipIf(server_not_running, "Works only when true")
 class TestAPI(unittest.TestCase):
+
+    def setUp(self):
+        self.client = TestClient(app)
 
     def test__rerank_route(self):
         for model in MODELS:
             data = {"query": QUERY, "docs": DOCUMENTS, "model": model}
-            response = self.call_route("/rerank", data, "post")
+            response = self.client.post("/rerank", json=data)
             self.assertEqual(200, response.status_code)
             ranks = response.json().get("ranks")
             self.assertIsInstance(ranks, list)
@@ -52,30 +35,23 @@ class TestAPI(unittest.TestCase):
     def test__returns_error_for_invalid_model_name(self):
         model = "a-model-that-doesnt-exist"
         data = {"query": QUERY, "docs": DOCUMENTS, "model": model}
-        response = self.call_route("/rerank", data, "post")
+        response = self.client.post("/rerank", json=data)
         self.assertEqual(400, response.status_code)
 
     def test__returns_error_for_empty_doc_list(self):
         model = "concept-match-ranker"
         data = {"query": QUERY, "docs": [], "model": model}
-        response = self.call_route("/rerank", data, "post")
+        response = self.client.post("/rerank", json=data)
         self.assertEqual(400, response.status_code)
 
     def test__score_route(self):
         for model in MODELS:
             data = {"query": QUERY, "doc": DOCUMENTS[1], "model": model}
-            response = self.call_route("/score", data, "post")
+            response = self.client.post("/score", json=data)
             self.assertEqual(200, response.status_code)
             score = response.json().get("score")
             self.assertIsInstance(score, float)
             self.assertGreater(score, 0.0)
-
-    @staticmethod
-    def call_route(route, data, method="get"):
-        route = route.lstrip("/")
-        url = f"{PROTOCOL}://{HOST}:{PORT}/{route}"
-        response = getattr(requests, method)(url, json=data)
-        return response
 
 
 if __name__ == "__main__":
