@@ -14,7 +14,7 @@ documents are typically obtained by a coarse but fast searching technique from a
 large corpus. Reranking techniques are more accurate in terms of relevance
 judgement but not scalable for millions of documents.
 
-<br>
+
 For more detailed information, please refer to [PQAI Wiki](https://github.com/pqaidevteam/pqai/wiki/pqai-reranker) .
 ## Routes
 
