@@ -16,6 +16,8 @@ judgement but not scalable for millions of documents.
 
 
 For more detailed information, please refer to [PQAI Wiki](https://github.com/pqaidevteam/pqai/wiki/pqai-reranker) .
+
+
 ## Routes
 
 | Method | Endpoint  | Comments                                                           |
