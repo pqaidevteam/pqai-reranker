@@ -23,6 +23,7 @@ For more detailed information, please refer to [PQAI Wiki](https://github.com/pq
 | Method | Endpoint  | Comments                                                           |
 | ------ | --------- | ------------------------------------------------------------------ |
 | `GET`  | `/rerank` | Sort given documents w.r.t. their relevance to a given query       |
+| `GET`  | `/score`  | Return a similarity score for a query/doc pair                     |
 
 ## How to run?
 
