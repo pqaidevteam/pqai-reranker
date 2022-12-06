@@ -20,10 +20,10 @@ For more detailed information, please refer to [PQAI Wiki](https://github.com/pq
 
 ## Routes
 
-| Method | Endpoint  | Comments                                                           |
-| ------ | --------- | ------------------------------------------------------------------ |
-| `GET`  | `/rerank` | Sort given documents w.r.t. their relevance to a given query       |
-| `GET`  | `/score`  | Return a similarity score for a query/doc pair                     |
+| Method  | Endpoint  | Comments                                                           |
+| ------- | --------- | ------------------------------------------------------------------ |
+| `POST`  | `/rerank` | Sort given documents w.r.t. their relevance to a given query       |
+| `POST`  | `/score`  | Return a similarity score for a query/doc pair                     |
 
 ## How to run?
 
